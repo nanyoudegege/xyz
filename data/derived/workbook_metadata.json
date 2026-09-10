@@ -1,0 +1,47 @@
+{
+  "source_file": "who_malaria_vaccines_pipeline_data_download_june2026.xlsx",
+  "source_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_june2026.xlsx?sfvrsn=291568be_1",
+  "workbook_sheets": [
+    "Notes",
+    "MalariaVaccinesPipeline"
+  ],
+  "sheets": [
+    {
+      "index": 1,
+      "sheet_name": "Notes",
+      "csv_file": "01_Notes.csv",
+      "rows": 19,
+      "columns": [
+        "Unnamed: 0",
+        "Unnamed: 1"
+      ]
+    },
+    {
+      "index": 2,
+      "sheet_name": "MalariaVaccinesPipeline",
+      "csv_file": "02_MalariaVaccinesPipeline.csv",
+      "rows": 243,
+      "columns": [
+        "Product name",
+        "Vaccine status",
+        "WHO review",
+        "Description",
+        "Developers",
+        "Highest Development Phase",
+        "Species",
+        "Life cycle",
+        "Antigen",
+        "Platform",
+        "Adjuvant",
+        "Route of Administration",
+        "Trial status",
+        "Trial phase",
+        "Trial end year",
+        "Trial sites",
+        "CHMI site",
+        "Registry ID",
+        "Link to trial"
+      ]
+    }
+  ]
+}
