@@ -1,0 +1,153 @@
+name: Fetch historical WHO malaria-vaccine pipeline snapshots
+
+on:
+  push:
+    branches:
+      - research/malaria-pipeline-draft
+    paths:
+      - .github/workflows/fetch-who-history.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install readers
+        run: python -m pip install --quiet pandas openpyxl requests beautifulsoup4
+      - name: Fetch and convert WHO snapshots
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from urllib.parse import urljoin
+          import hashlib, json, re, time
+          import pandas as pd
+          import requests
+          from bs4 import BeautifulSoup
+
+          ROOT = Path('data/history')
+          ROOT.mkdir(parents=True, exist_ok=True)
+          session = requests.Session()
+          session.headers.update({'User-Agent': 'Mozilla/5.0 reproducible academic research'})
+
+          current_page = 'https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development'
+          snapshots = {
+              '2022-07': {
+                  'published': '2022-11',
+                  'data_cutoff': '2022-07',
+                  'xlsx_url': 'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1',
+              },
+              '2023-12': {
+                  'published': '2024-03',
+                  'data_cutoff': '2023-12',
+                  'xlsx_url': 'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_march2024.xlsx?sfvrsn=6a520a7c_3',
+              },
+          }
+
+          def get(url):
+              last = None
+              for attempt in range(5):
+                  try:
+                      r = session.get(url, timeout=60, allow_redirects=True)
+                      r.raise_for_status()
+                      return r
+                  except Exception as exc:
+                      last = exc
+                      time.sleep(2 ** attempt)
+              raise last
+
+          # Discover the April 2025 archived page from the current WHO page,
+          # then discover its exact XLSX link rather than guessing a CDN token.
+          soup = BeautifulSoup(get(current_page).text, 'html.parser')
+          apr_links = []
+          for a in soup.find_all('a', href=True):
+              href = urljoin(current_page, a['href'])
+              text = a.get_text(' ', strip=True).lower()
+              if ('apr' in href.lower() and '2025' in href.lower()) or ('april 2025' in text):
+                  apr_links.append(href)
+          if not apr_links:
+              raise RuntimeError('Could not discover April 2025 archive page from current WHO page')
+          apr_page = apr_links[0]
+          apr_soup = BeautifulSoup(get(apr_page).text, 'html.parser')
+          xlsx_links = []
+          for a in apr_soup.find_all('a', href=True):
+              href = urljoin(apr_page, a['href'])
+              if '.xlsx' in href.lower() and 'malaria' in href.lower():
+                  xlsx_links.append(href)
+          if not xlsx_links:
+              # Search raw page source as a fallback for encoded links.
+              matches = re.findall(r'https?://[^"\'<> ]+\.xlsx[^"\'<> ]*', str(apr_soup), flags=re.I)
+              xlsx_links.extend(matches)
+          if not xlsx_links:
+              raise RuntimeError(f'Could not discover XLSX from {apr_page}')
+          snapshots['2024-12'] = {
+              'published': '2025-04',
+              'data_cutoff': '2024-12',
+              'page_url': apr_page,
+              'xlsx_url': xlsx_links[0].replace('&amp;', '&'),
+          }
+
+          manifest = {'current_page': current_page, 'snapshots': {}}
+          for key, meta in snapshots.items():
+              out = ROOT / key
+              raw = out / 'raw'
+              derived = out / 'derived'
+              raw.mkdir(parents=True, exist_ok=True)
+              derived.mkdir(parents=True, exist_ok=True)
+              r = get(meta['xlsx_url'])
+              source = raw / f'who_malaria_vaccine_pipeline_{key}.xlsx'
+              source.write_bytes(r.content)
+              if not r.content.startswith(b'PK'):
+                  raise RuntimeError(f'{key} did not return an XLSX/ZIP payload: {r.headers.get("content-type")}')
+              digest = hashlib.sha256(r.content).hexdigest()
+              (raw / 'SHA256SUMS.txt').write_text(f'{digest}  {source.name}\n', encoding='utf-8')
+
+              xls = pd.ExcelFile(source, engine='openpyxl')
+              sheet_meta = []
+              for i, sheet in enumerate(xls.sheet_names, start=1):
+                  frame = pd.read_excel(source, sheet_name=sheet, dtype=object, engine='openpyxl')
+                  safe = re.sub(r'[^A-Za-z0-9._-]+', '_', sheet).strip('_') or f'sheet_{i}'
+                  filename = f'{i:02d}_{safe}.csv'
+                  frame.to_csv(derived / filename, index=False, encoding='utf-8')
+                  sheet_meta.append({
+                      'index': i,
+                      'sheet_name': sheet,
+                      'csv_file': filename,
+                      'rows': int(len(frame)),
+                      'columns': [str(c) for c in frame.columns],
+                  })
+              manifest['snapshots'][key] = {
+                  **meta,
+                  'resolved_url': r.url,
+                  'sha256': digest,
+                  'bytes': len(r.content),
+                  'sheets': sheet_meta,
+              }
+
+          (ROOT / 'history_manifest.json').write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8'
+          )
+          print(json.dumps(manifest, ensure_ascii=False, indent=2))
+          PY
+      - name: Upload history bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: who-malaria-vaccine-pipeline-history
+          path: data/history/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Commit snapshot files
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/history
+          git commit -m 'data: add historical WHO malaria-vaccine snapshots [skip ci]' || exit 0
+          git push
