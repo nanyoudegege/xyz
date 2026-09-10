@@ -1,0 +1,99 @@
+name: Fetch WHO malaria-vaccine pipeline data
+
+on:
+  push:
+    branches:
+      - research/malaria-pipeline-draft
+    paths:
+      - .github/workflows/fetch-who-data.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-and-convert:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out research branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install spreadsheet readers
+        run: python -m pip install --quiet pandas openpyxl
+
+      - name: Download WHO source workbook
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p data/raw data/derived
+          url='https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_june2026.xlsx?sfvrsn=291568be_1'
+          curl --fail --location --retry 5 --retry-all-errors \
+            --user-agent 'Mozilla/5.0 research-reproducibility-download' \
+            "$url" \
+            --output data/raw/who_malaria_vaccines_pipeline_data_download_june2026.xlsx
+          test -s data/raw/who_malaria_vaccines_pipeline_data_download_june2026.xlsx
+          file data/raw/who_malaria_vaccines_pipeline_data_download_june2026.xlsx
+          sha256sum data/raw/who_malaria_vaccines_pipeline_data_download_june2026.xlsx \
+            > data/raw/SHA256SUMS.txt
+
+      - name: Convert every sheet to UTF-8 CSV and record metadata
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json, re
+          import pandas as pd
+
+          source = Path('data/raw/who_malaria_vaccines_pipeline_data_download_june2026.xlsx')
+          outdir = Path('data/derived')
+          outdir.mkdir(parents=True, exist_ok=True)
+
+          xls = pd.ExcelFile(source, engine='openpyxl')
+          meta = {
+              'source_file': source.name,
+              'source_url': 'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_june2026.xlsx?sfvrsn=291568be_1',
+              'workbook_sheets': xls.sheet_names,
+              'sheets': []
+          }
+
+          for i, sheet in enumerate(xls.sheet_names, start=1):
+              df = pd.read_excel(source, sheet_name=sheet, dtype=object, engine='openpyxl')
+              safe = re.sub(r'[^A-Za-z0-9._-]+', '_', sheet).strip('_') or f'sheet_{i}'
+              filename = f'{i:02d}_{safe}.csv'
+              df.to_csv(outdir / filename, index=False, encoding='utf-8')
+              meta['sheets'].append({
+                  'index': i,
+                  'sheet_name': sheet,
+                  'csv_file': filename,
+                  'rows': int(len(df)),
+                  'columns': [str(c) for c in df.columns]
+              })
+
+          (outdir / 'workbook_metadata.json').write_text(
+              json.dumps(meta, ensure_ascii=False, indent=2), encoding='utf-8'
+          )
+          print(json.dumps(meta, ensure_ascii=False, indent=2))
+          PY
+
+      - name: Commit reproducible source snapshot and CSV exports
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data
+          git commit -m 'data: snapshot WHO malaria-vaccine pipeline June 2026 [skip ci]' || exit 0
+          git push
+
+      - name: Upload data bundle as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: who-malaria-vaccine-pipeline-june2026
+          path: data/
+          if-no-files-found: error
+          retention-days: 30
