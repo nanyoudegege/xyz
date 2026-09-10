@@ -1,0 +1,84 @@
+name: Temporary WHO malaria data fetch
+
+on:
+  push:
+    branches:
+      - tmp-who-malaria-fetch-20260910
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download official WHO workbook snapshots and provenance pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out/pages out/workbooks
+
+          pages=(
+            "july2022|https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development-nov-2022"
+            "dec2023|https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development-(mar2024)"
+            "apr2025|https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development-(apr-2025)"
+            "dec2025|https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development"
+          )
+          for item in "${pages[@]}"; do
+            key="${item%%|*}"
+            url="${item#*|}"
+            curl --fail --location --retry 3 --retry-delay 2 --user-agent 'Mozilla/5.0 WHO pipeline research archiver' "$url" -o "out/pages/${key}.html"
+          done
+
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1' \
+            -o out/workbooks/who_malaria_vaccines_pipeline_july2022.xlsx
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_march2024.xlsx?sfvrsn=6a520a7c_3' \
+            -o out/workbooks/who_malaria_vaccines_pipeline_march2024.xlsx
+          curl --fail --location --retry 3 --retry-delay 2 \
+            'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_june2026.xlsx?sfvrsn=291568be_1' \
+            -o out/workbooks/who_malaria_vaccines_pipeline_june2026.xlsx
+
+          python - <<'PY'
+          from pathlib import Path
+          import html, re, subprocess, urllib.parse
+
+          found = []
+          for page in Path('out/pages').glob('*.html'):
+              text = html.unescape(page.read_text(errors='replace'))
+              urls = sorted(set(re.findall(r'https?://[^\"\'<> ]+?\.xlsx(?:\?[^\"\'<> ]*)?', text, flags=re.I)))
+              hrefs = re.findall(r'(?:href|src)=[\"\']([^\"\']+\.xlsx(?:\?[^\"\']*)?)[\"\']', text, flags=re.I)
+              urls.extend(urllib.parse.urljoin('https://www.who.int/', u) for u in hrefs)
+              for url in sorted(set(urls)):
+                  found.append((page.stem, url))
+          Path('out/discovered_xlsx_links.tsv').write_text('page\turl\n' + ''.join(f'{p}\t{u}\n' for p,u in found))
+
+          for i, (page, url) in enumerate(found, 1):
+              if page == 'apr2025':
+                  target = Path(f'out/workbooks/discovered_apr2025_{i}.xlsx')
+                  result = subprocess.run(['curl','--fail','--location','--retry','3',url,'-o',str(target)])
+                  if result.returncode != 0:
+                      target.unlink(missing_ok=True)
+          PY
+
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, zipfile
+          rows = ['file\tbytes\tsha256\tvalid_ooxml\n']
+          for p in sorted(Path('out/workbooks').glob('*.xlsx')):
+              valid = p.read_bytes()[:2] == b'PK' and zipfile.is_zipfile(p)
+              rows.append(f'{p.name}\t{p.stat().st_size}\t{hashlib.sha256(p.read_bytes()).hexdigest()}\t{str(valid).lower()}\n')
+              if not valid:
+                  raise SystemExit(f'Invalid workbook: {p}')
+          Path('out/workbook_manifest.tsv').write_text(''.join(rows))
+          PY
+
+      - name: Upload frozen source package
+        uses: actions/upload-artifact@v4
+        with:
+          name: who-malaria-pipeline-source-snapshots
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
