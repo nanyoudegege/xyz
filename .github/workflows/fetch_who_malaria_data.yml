@@ -1,7 +1,10 @@
+# Temporary reproducibility workflow for WHO malaria-pipeline data acquisition
 name: Fetch WHO malaria vaccine data
 
 on:
   push:
+    branches:
+      - malaria-who-data-20260910
     paths:
       - '.github/workflows/fetch_who_malaria_data.yml'
   workflow_dispatch:
@@ -43,11 +46,11 @@ jobs:
             -o artifact/raw/who_july2022.xlsx
 
           python - <<'PY'
-          import html, pathlib, re, urllib.parse, urllib.request
+          import html, pathlib, re, urllib.request
           p = pathlib.Path('artifact/pages/apr2025.html')
           if p.exists():
               text = html.unescape(p.read_text(errors='ignore'))
-              urls = set(re.findall(r'https?://[^\"\'<> ]+?\.xlsx(?:\?[^\"\'<> ]*)?', text, flags=re.I))
+              urls = set(re.findall(r"https?://[^\"'<> ]+?\.xlsx(?:\?[^\"'<> ]*)?", text, flags=re.I))
               pathlib.Path('artifact/meta/apr2025_xlsx_links.txt').write_text('\n'.join(sorted(urls)))
               for i, u in enumerate(sorted(urls), 1):
                   try:
