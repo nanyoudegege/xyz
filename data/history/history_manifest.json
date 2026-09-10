@@ -1,0 +1,149 @@
+{
+  "current_page": "https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development",
+  "snapshots": {
+    "2022-07": {
+      "published": "2022-11",
+      "data_cutoff": "2022-07",
+      "xlsx_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1",
+      "resolved_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1",
+      "sha256": "fea2ecea06eaf1ff44dd9d18ec7671f8289822a2a2a2bf715b1818b8e4ef25f1",
+      "bytes": 363898,
+      "sheets": [
+        {
+          "index": 1,
+          "sheet_name": "Notes",
+          "csv_file": "01_Notes.csv",
+          "rows": 19,
+          "columns": [
+            "Unnamed: 0",
+            "Unnamed: 1"
+          ]
+        },
+        {
+          "index": 2,
+          "sheet_name": "MalariaVaccinesPipeline",
+          "csv_file": "02_MalariaVaccinesPipeline.csv",
+          "rows": 153,
+          "columns": [
+            "TrialId",
+            "Product name",
+            "Vaccine status",
+            "WHO review",
+            "Description",
+            "Developers",
+            "Highest Development Phase",
+            "Species",
+            "Life cycle",
+            "Antigen",
+            "Platform",
+            "Adjuvant",
+            "Route of administration",
+            "Trial status",
+            "Trial phase",
+            "Trial sites",
+            "Trial end year",
+            "CHMI site",
+            "Registry ID",
+            "Link to trial"
+          ]
+        }
+      ]
+    },
+    "2023-12": {
+      "published": "2024-03",
+      "data_cutoff": "2023-12",
+      "xlsx_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_march2024.xlsx?sfvrsn=6a520a7c_3",
+      "resolved_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_march2024.xlsx?sfvrsn=6a520a7c_3",
+      "sha256": "7ab79fd4f9eae4774b52b035ce2d77f405652f739ea046cceeacd4e1811bc52d",
+      "bytes": 377853,
+      "sheets": [
+        {
+          "index": 1,
+          "sheet_name": "Notes",
+          "csv_file": "01_Notes.csv",
+          "rows": 19,
+          "columns": [
+            "Unnamed: 0",
+            "Unnamed: 1"
+          ]
+        },
+        {
+          "index": 2,
+          "sheet_name": "MalariaVaccinesPipeline",
+          "csv_file": "02_MalariaVaccinesPipeline.csv",
+          "rows": 221,
+          "columns": [
+            "Product name",
+            "Vaccine status",
+            "WHO review",
+            "Description",
+            "Developers",
+            "Highest Development Phase",
+            "Species",
+            "Life cycle",
+            "Antigen",
+            "Platform",
+            "Adjuvant",
+            "Route of administration",
+            "Trial status",
+            "Trial phase",
+            "Trial sites",
+            "Trial end year",
+            "CHMI site",
+            "Registry ID",
+            "Link to trial"
+          ]
+        }
+      ]
+    },
+    "2024-12": {
+      "published": "2025-04",
+      "data_cutoff": "2024-12",
+      "page_url": "https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development-(apr-2025)",
+      "xlsx_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1",
+      "resolved_url": "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1",
+      "sha256": "fea2ecea06eaf1ff44dd9d18ec7671f8289822a2a2a2bf715b1818b8e4ef25f1",
+      "bytes": 363898,
+      "sheets": [
+        {
+          "index": 1,
+          "sheet_name": "Notes",
+          "csv_file": "01_Notes.csv",
+          "rows": 19,
+          "columns": [
+            "Unnamed: 0",
+            "Unnamed: 1"
+          ]
+        },
+        {
+          "index": 2,
+          "sheet_name": "MalariaVaccinesPipeline",
+          "csv_file": "02_MalariaVaccinesPipeline.csv",
+          "rows": 153,
+          "columns": [
+            "TrialId",
+            "Product name",
+            "Vaccine status",
+            "WHO review",
+            "Description",
+            "Developers",
+            "Highest Development Phase",
+            "Species",
+            "Life cycle",
+            "Antigen",
+            "Platform",
+            "Adjuvant",
+            "Route of administration",
+            "Trial status",
+            "Trial phase",
+            "Trial sites",
+            "Trial end year",
+            "CHMI site",
+            "Registry ID",
+            "Link to trial"
+          ]
+        }
+      ]
+    }
+  }
+}
