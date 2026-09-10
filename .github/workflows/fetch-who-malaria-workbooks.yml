@@ -1,0 +1,131 @@
+name: Fetch WHO malaria pipeline workbooks
+
+on:
+  push:
+    branches:
+      - who-malaria-data-fetch-20260911
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download official WHO workbooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+
+          download() {
+            local label="$1"
+            local url="$2"
+            local outfile="out/${label}.xlsx"
+            echo "Downloading ${label} from ${url}"
+            curl -fL --retry 5 --retry-all-errors --connect-timeout 30 --max-time 180 \
+              -A 'Mozilla/5.0 (compatible; reproducibility-research/1.0)' \
+              "$url" -o "$outfile"
+          }
+
+          download "who_malaria_pipeline_july2022" \
+            "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_july2022.xlsx?sfvrsn=cf739119_1"
+          download "who_malaria_pipeline_march2024" \
+            "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_march2024.xlsx?sfvrsn=6a520a7c_3"
+          download "who_malaria_pipeline_june2026" \
+            "https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_june2026.xlsx?sfvrsn=291568be_1"
+
+          APR_PAGE='https://www.who.int/observatories/global-observatory-on-health-research-and-development/monitoring/who-review-of-malaria-vaccine-clinical-development-%28apr-2025%29'
+          curl -fL --retry 5 --retry-all-errors -A 'Mozilla/5.0' "$APR_PAGE" -o out/april2025_page.html || true
+
+          APR_URL=''
+          if [[ -s out/april2025_page.html ]]; then
+            APR_URL=$(python - <<'PY'
+          import html, re
+          from pathlib import Path
+          text = html.unescape(Path('out/april2025_page.html').read_text('utf-8', errors='ignore'))
+          urls = re.findall(r'https://cdn\.who\.int/[^\"\'<> ]+?\.xlsx(?:\?[^\"\'<> ]*)?', text, flags=re.I)
+          preferred = [u for u in urls if 'malaria' in u.lower() and ('2025' in u or 'december2024' in u.lower() or 'dec2024' in u.lower())]
+          print((preferred or urls or [''])[0])
+          PY
+          )
+          fi
+
+          if [[ -n "$APR_URL" ]]; then
+            echo "Found April 2025 workbook link: $APR_URL"
+            curl -fL --retry 5 --retry-all-errors -A 'Mozilla/5.0' "$APR_URL" -o out/who_malaria_pipeline_april2025.xlsx || true
+          fi
+
+          if [[ ! -s out/who_malaria_pipeline_april2025.xlsx ]]; then
+            candidates=(
+              'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_april2025.xlsx'
+              'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_december2024.xlsx'
+              'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who_malaria_vaccines_pipeline_data_download_dec2024.xlsx'
+              'https://cdn.who.int/media/docs/default-source/global-observatory-on-health-r-d/who-malaria-vaccines-pipeline-data-download-april2025.xlsx'
+            )
+            for u in "${candidates[@]}"; do
+              echo "Trying $u"
+              if curl -fL --retry 2 --retry-all-errors -A 'Mozilla/5.0' "$u" -o out/who_malaria_pipeline_april2025.xlsx; then
+                APR_URL="$u"
+                break
+              fi
+              rm -f out/who_malaria_pipeline_april2025.xlsx
+            done
+          fi
+
+          printf '%s\n' "$APR_URL" > out/april2025_download_url.txt
+
+      - name: Validate and inventory workbooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, os, zipfile
+          from pathlib import Path
+          import openpyxl
+
+          out = Path('out')
+          records = []
+          for path in sorted(out.glob('*.xlsx')):
+              rec = {
+                  'filename': path.name,
+                  'size_bytes': path.stat().st_size,
+                  'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+                  'zip_valid': zipfile.is_zipfile(path),
+              }
+              if not rec['zip_valid']:
+                  rec['error'] = 'Not a valid XLSX ZIP archive'
+                  records.append(rec)
+                  continue
+              wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+              rec['sheets'] = []
+              for ws in wb.worksheets:
+                  preview = []
+                  for row in ws.iter_rows(min_row=1, max_row=min(ws.max_row, 12), values_only=True):
+                      preview.append([None if v is None else str(v) for v in row[:min(ws.max_column, 20)]])
+                  rec['sheets'].append({
+                      'title': ws.title,
+                      'max_row': ws.max_row,
+                      'max_column': ws.max_column,
+                      'preview': preview,
+                  })
+              records.append(rec)
+          (out / 'workbook_manifest.json').write_text(json.dumps(records, indent=2, ensure_ascii=False), encoding='utf-8')
+          print(json.dumps(records, indent=2, ensure_ascii=False))
+          required = {'who_malaria_pipeline_july2022.xlsx', 'who_malaria_pipeline_march2024.xlsx', 'who_malaria_pipeline_june2026.xlsx'}
+          present = {p.name for p in out.glob('*.xlsx') if zipfile.is_zipfile(p)}
+          missing = required - present
+          if missing:
+              raise SystemExit(f'Missing required workbooks: {sorted(missing)}')
+          PY
+          sha256sum out/*.xlsx > out/SHA256SUMS.txt
+
+      - name: Upload workbooks and manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: who-malaria-pipeline-workbooks
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
