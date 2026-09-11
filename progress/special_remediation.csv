@@ -1,0 +1,5 @@
+version,pdf_pages_or_count,scope,counts_as_full_page_completion
+v155,63;96;306;345;358;541;547;559;561;564;565;569,targeted text corrections and seven glossary-page coordinate rebuilds,no
+v158,205;473,targeted complex-page reconstruction,no
+v159,90 pages / 123 hidden blocks,removed non-source summary text from invisible OCR layer,no
+v160,253;264;425;517,mixed-caption splitting and coordinate repair,no
