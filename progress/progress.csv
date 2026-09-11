@@ -1,0 +1,10 @@
+version,date,base,pdf_pages,printed_pages,scope,records,characters,nonspace,zero_ink,fullbook_visual_identical,sha256,status
+v161,2026-09-09,v160,6-23,TOC 5-22,18-page table of contents rebuilt; printed page numbers corrected,701,7825,7750,0,592/592,84179a499050961ba23bf199fd2efe736da281a44b5691cc1925f4dab8089fc9,complete
+v162,2026-09-10,v161,24-28,1-5,Introduction and basic anatomical terminology,210,4835,4725,0,592/592,e9529e0d3ce948928fc69b7cf597258ac88ef07a21623035afc0ec8e20ce1114,complete
+v163,2026-09-10,v162,29-33,6-10,Musculoskeletal system and general osteology,326,3842,3749,0,592/592,8c90c5fa640c4247f4eee4b8597261105a1ffa2f9de64426e7e393ff60d4e04f,complete
+v164,2026-09-10,v163,34-38,11-15,General arthrology,171,3457,3361,0,592/592,94006eb51c2743c30dbe9c6d73ff92ee959a0b0254d4ded5ade635b300a44b08,complete
+v165,2026-09-10,v164,39-43,16-20,General myology and vascular system,239,4935,4837,0,592/592,dcac699985c10a46613ab98e4a1fb8e8622ec44b149c53c61453d351eee2f581,complete
+v166,2026-09-10,v165,44-48,21-25,"Fetal circulation, lymphatic system and splanchnology",247,4042,3986,0,592/592,1a6d3e31a94b010064aaaff69d8d6340f22375f4d6b3afa9eef727517db960ed,complete
+v167,2026-09-11,v166,49-53,26-30,"Digestive, respiratory, urinary, reproductive, endocrine and nervous systems",232,3835,3782,0,592/592,d6298f87653c12b4bebef6a44ce00461687b23cda3a79585fb9a308e3f1fe2b5,complete
+v168,2026-09-11,v167,54-58,31-35,General nervous system and receptors,225,4210,4072,0,592/592,06d7a584cae94cf1060c5a76a308f6e9deb7f585754a4eca23ace9d7fe8fd95d,complete
+v169,2026-09-11,v168,59-63,36-40,"Skin, dissection instruments, dissection methods and laboratory requirements",158,3712,3692,0,592/592,d7dde87366fc91dfb70b37576cced44d60387b35ec6d823cee0cb9b137a098d0,complete
