@@ -1,0 +1,17 @@
+# Copyrighted source and derived full-text artifacts
+*.pdf
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.tif
+*.tiff
+*_校定文本.txt
+*_逐字坐标明细.csv
+
+# Working/render directories
+_work/
+_renders/
+_diff/
+__pycache__/
+*.pyc
