@@ -1,0 +1,24 @@
+name: Validate progress metadata
+
+on:
+  push:
+    paths:
+      - "progress/**"
+      - "scripts/check_progress.py"
+      - ".github/workflows/validate-progress.yml"
+  pull_request:
+    paths:
+      - "progress/**"
+      - "scripts/check_progress.py"
+      - ".github/workflows/validate-progress.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate progress tables
+        run: python scripts/check_progress.py
