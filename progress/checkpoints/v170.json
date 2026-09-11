@@ -1,0 +1,49 @@
+{
+  "version": "v170",
+  "date": "2026-09-11",
+  "base_version": "v169",
+  "mode": "complete_batch_deepcheck",
+  "scope": {
+    "pdf_pages": [64, 113],
+    "printed_pages": [41, 90],
+    "page_count": 50,
+    "section": "lower limb"
+  },
+  "character_layer": {
+    "characters": 40339,
+    "nonspace_characters": 39001,
+    "zero_ink_nonspace": 0,
+    "exact_stream_sequence": true,
+    "max_coordinate_roundtrip_error_pt": 3.463543123416457e-7
+  },
+  "visual_review": {
+    "scan_confirmed_text_corrections": 33,
+    "manual_reconstruction_groups": 27,
+    "manual_reconstruction_nonspace_characters": 632,
+    "manual_reconstruction_pages": [66, 71, 73, 83, 87, 89, 94, 95, 99, 102, 110, 111]
+  },
+  "regression": {
+    "whole_book_mupdf_36dpi": "592/592 identical",
+    "all_50_pdfium_96dpi": "50/50 identical",
+    "representative_pages": [64, 65, 66, 71, 73, 83, 87, 89, 94, 95, 99, 102, 110, 111, 113],
+    "representative_pdfium_180dpi_vs_baseline_and_source": "15/15 identical",
+    "representative_poppler_180dpi_vs_baseline_and_source": "15/15 identical",
+    "ghostscript_exit": 0
+  },
+  "structure": {
+    "pdf_pages": 592,
+    "bookmarks": 706,
+    "annotation_pages": 43,
+    "annotations": 282,
+    "page_labels_preserved": true,
+    "unedited_text_pages_unchanged": 542
+  },
+  "sha256": "a9de787dcfef5142a0c162d8e894291b6b0a40c315c6f282ad224cd80a6f7a82",
+  "public_repository_boundary": "No source scans, page images, full transcriptions, corrected PDFs, or character-level textbook content are committed.",
+  "quality_boundary": "This checkpoint is a fifty-page baseline-assisted coordinate rebuild with scan-confirmed high-risk visual correction. It is not represented as fifty pages retyped from scratch or as proof of absolute semantic zero error.",
+  "next_batch": {
+    "pdf_pages": [114, 163],
+    "printed_pages": [91, 140],
+    "page_count": 50
+  }
+}
