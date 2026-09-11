@@ -1,0 +1,45 @@
+name: OCR page review
+description: Report a page-level OCR or coordinate issue without uploading copyrighted page content
+title: "[page review] PDF p___ / printed p___"
+labels: []
+body:
+  - type: input
+    id: pdf_page
+    attributes:
+      label: PDF page
+      placeholder: "64"
+    validations:
+      required: true
+  - type: input
+    id: printed_page
+    attributes:
+      label: Printed page
+      placeholder: "41"
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Text recognition
+        - Punctuation or spacing
+        - Reading order
+        - Character coordinates
+        - Figure label or caption
+        - Visible-render regression
+        - Metadata or structure
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Short description
+      description: Do not paste substantial textbook text or upload page screenshots.
+    validations:
+      required: true
+  - type: checkboxes
+    id: copyright
+    attributes:
+      label: Copyright-safe report
+      options:
+        - label: I did not attach or paste substantial copyrighted page content.
+          required: true
