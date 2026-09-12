@@ -1,0 +1,47 @@
+{
+  "version": "v171",
+  "date": "2026-09-12",
+  "base_version": "v170",
+  "mode": "complete_batch_deepcheck_with_deferred",
+  "scope": {
+    "pdf_pages": [114, 163],
+    "printed_pages": [91, 140],
+    "page_count": 50
+  },
+  "character_layer": {
+    "characters": 41752,
+    "nonspace_characters": 40301,
+    "problem_lines": 109,
+    "repaired_problem_lines": 101,
+    "deferred_problem_lines": 8,
+    "deferred_table_lines": 1,
+    "zero_ink_nonspace_by_conservative_mask": 434,
+    "exact_text_sequence_preserved": true,
+    "target_text_mismatch_pages": []
+  },
+  "review": {
+    "pages_with_deferred_lines": [114, 115, 123, 132, 134, 148],
+    "note": "Deferred items were not forced onto arbitrary image ink. They remain in the private audit package for later visual-semantic adjudication."
+  },
+  "regression": {
+    "whole_book_visible": "592/592 identical",
+    "target_visible_vs_v170": "50/50 identical",
+    "target_visible_vs_source": "50/50 identical",
+    "non_target_structure_mismatch_pages": []
+  },
+  "structure": {
+    "pdf_pages": 592,
+    "bookmarks": 706,
+    "annotation_pages": 62,
+    "annotation_references": 282,
+    "page_labels_preserved": true
+  },
+  "sha256": "7133ac4b6f46c418e977f9242100894098b0e04f84c3e2c423370612a6452567",
+  "public_repository_boundary": "No source scans, page images, full transcriptions, corrected PDFs, or character-level textbook content are committed.",
+  "quality_boundary": "This is a fifty-page conservative geometry deep-check. It preserves the prior text sequence while repairing high-risk coordinates. It is not represented as a complete from-scratch semantic transcription or proof of absolute zero error.",
+  "next_batch": {
+    "pdf_pages": [164, 213],
+    "printed_pages": [141, 190],
+    "page_count": 50
+  }
+}
